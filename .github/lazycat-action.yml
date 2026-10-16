@@ -24,37 +24,18 @@ images:
     source: memohai/server
     channel: stable
     sort: semver
-    tag_regex: '^\d+\.\d+\.\d+
-
-stores:
-  official:
-    enabled: false
-  private:
-    enabled: true
-    skip_if_version_exists: true
-    name: Memoh
-    summary: "开源多 Agent 平台：独立沙箱、长期记忆"
-
+    tag_regex: '^\d+\.\d+\.\d+$'
     delivery:
       mode: mirror
       require_digest_match: true
+
   - id: web
     target: service
     service: web
     source: memohai/web
     channel: stable
     sort: semver
-    tag_regex: '^\d+\.\d+\.\d+
-
-stores:
-  official:
-    enabled: false
-  private:
-    enabled: true
-    skip_if_version_exists: true
-    name: Memoh
-    summary: "开源多 Agent 平台：独立沙箱、长期记忆"
-
+    tag_regex: '^\d+\.\d+\.\d+$'
     delivery:
       mode: mirror
       require_digest_match: true
