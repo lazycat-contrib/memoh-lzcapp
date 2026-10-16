@@ -7,7 +7,6 @@ application:
   upstreams:
     - location: /
       backend: http://web:8082/
-
 services:
   postgres:
     # upstream: postgres:18-alpine
@@ -26,7 +25,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   pgvector:
     # upstream: pgvector/pgvector:pg18
     image: docker.1ms.run/pgvector/pgvector:pg18
@@ -44,7 +42,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   migrate:
     # 一次性数据库迁移任务（与 server 同镜像）
     image: docker.1ms.run/memohai/server:0.21.0
@@ -66,7 +63,6 @@ services:
             /app/config-tmpl/config-template.toml > /lzcapp/var/memoh/config/config.toml
       fi
       cp /lzcapp/var/memoh/config/config.toml /app/config.toml
-
   server:
     # upstream: memohai/server:0.21.0
     image: docker.1ms.run/memohai/server:0.21.0
@@ -98,7 +94,6 @@ services:
       timeout: 3s
       retries: 3
       start_period: 30s
-
   channel:
     # upstream: memohai/server:0.21.0（channel 进程）
     image: docker.1ms.run/memohai/server:0.21.0
@@ -128,9 +123,8 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
-
   web:
-    # upstream: memohai/web:latest
+    # upstream: memohai/web:0.21.0
     image: docker.1ms.run/memohai/web:0.21.0
     environment:
       - MEMOH_SERVER_UPSTREAM=memoh-server:8080
