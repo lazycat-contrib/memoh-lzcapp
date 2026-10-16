@@ -1,0 +1,15 @@
+package: community.lazycat.app.memoh
+version: 0.21.0
+name: Memoh
+description: "The open-source multi-agent platform: every agent gets its own computer, desktop, network and long-term memory"
+min_os_version: 1.5.0
+author: felinics
+license: AGPL-3.0
+homepage: https://github.com/felinics/Memoh
+locales:
+  zh:
+    name: "Memoh"
+    description: "开源多 Agent 平台：每个 Agent 拥有独立的计算机、桌面、网络与长期记忆，支持自带 API Key 与 Claude Code/Codex 托管"
+  en:
+    name: "Memoh"
+    description: "The open-source multi-agent platform with long-term memory"

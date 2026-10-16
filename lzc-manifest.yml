@@ -1,0 +1,140 @@
+application:
+  subdomain: memoh
+  background_task: true
+  multi_instance: false
+  public_path:
+    - /
+  upstreams:
+    - location: /
+      backend: http://web:8082/
+
+services:
+  postgres:
+    # upstream: postgres:18-alpine
+    image: docker.1ms.run/library/postgres:18-alpine
+    environment:
+      - POSTGRES_DB=memoh
+      - POSTGRES_USER=memoh
+      - POSTGRES_PASSWORD={{ stable_secret "db_password" }}
+      - TZ=Asia/Shanghai
+    binds:
+      - /lzcapp/var/memoh/postgres:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U memoh
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgvector:
+    # upstream: pgvector/pgvector:pg18
+    image: docker.1ms.run/pgvector/pgvector:pg18
+    environment:
+      - POSTGRES_DB=memoh_vector
+      - POSTGRES_USER=memoh
+      - POSTGRES_PASSWORD={{ stable_secret "db_password" }}
+      - TZ=Asia/Shanghai
+    binds:
+      - /lzcapp/var/memoh/pgvector:/var/lib/postgresql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U memoh -d memoh_vector
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    # 一次性数据库迁移任务（与 server 同镜像）
+    image: docker.1ms.run/memohai/server:0.21.0
+    entrypoint: ["/app/memoh-server", "migrate", "up"]
+    environment:
+      - TZ=Asia/Shanghai
+    binds:
+      - /lzcapp/var/memoh/config:/app/config-tmpl:ro
+      - /lzcapp/pkg/content/providers:/app/conf/providers:ro
+      - /lzcapp/pkg/content/oauth-clients.toml:/app/conf/oauth-clients.toml:ro
+      - /lzcapp/var/memoh/data:/opt/memoh/data
+    setup_script: |
+      # 首次生成 config.toml（密码/密钥随包版本稳定）
+      mkdir -p /lzcapp/var/memoh/config
+      if [ ! -f /lzcapp/var/memoh/config/config.toml ]; then
+        sed -e "s|ADMIN_PASSWORD_PLACEHOLDER|{{ stable_secret "admin_password" }}|" \
+            -e "s|JWT_SECRET_PLACEHOLDER|{{ stable_secret "jwt_secret" }}|" \
+            -e "s|DB_PASSWORD_PLACEHOLDER|{{ stable_secret "db_password" }}|" \
+            /app/config-tmpl/config-template.toml > /lzcapp/var/memoh/config/config.toml
+      fi
+      cp /lzcapp/var/memoh/config/config.toml /app/config.toml
+
+  server:
+    # upstream: memohai/server:0.21.0
+    image: docker.1ms.run/memohai/server:0.21.0
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
+      - MEMOH_INTERNAL_RPC_SHARED_SECRET={{ stable_secret "rpc_secret" }}
+      - MEMOH_INTERNAL_RPC_SERVER_TARGET=server:9090
+      - MEMOH_INTERNAL_RPC_CHANNEL_TARGET=channel:9091
+    binds:
+      - /lzcapp/var/memoh/config:/app/config-tmpl:ro
+      - /lzcapp/pkg/content/providers:/app/conf/providers:ro
+      - /lzcapp/pkg/content/oauth-clients.toml:/app/conf/oauth-clients.toml:ro
+      - /lzcapp/var/memoh/data:/opt/memoh/data
+    setup_script: |
+      cp /lzcapp/var/memoh/config/config.toml /app/config.toml
+    depends_on:
+      - postgres
+      - pgvector
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://127.0.0.1:8080/health
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+
+  channel:
+    # upstream: memohai/server:0.21.0（channel 进程）
+    image: docker.1ms.run/memohai/server:0.21.0
+    entrypoint: ["/app/memoh-channel", "serve"]
+    environment:
+      - TZ=Asia/Shanghai
+      - MEMOH_INTERNAL_RPC_SHARED_SECRET={{ stable_secret "rpc_secret" }}
+      - MEMOH_INTERNAL_RPC_SERVER_TARGET=server:9090
+      - MEMOH_INTERNAL_RPC_CHANNEL_TARGET=channel:9091
+    binds:
+      - /lzcapp/var/memoh/config:/app/config-tmpl:ro
+      - /lzcapp/pkg/content/providers:/app/conf/providers:ro
+      - /lzcapp/pkg/content/oauth-clients.toml:/app/conf/oauth-clients.toml:ro
+    setup_script: |
+      cp /lzcapp/var/memoh/config/config.toml /app/config.toml
+    depends_on:
+      - server
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://127.0.0.1:8081/health
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  web:
+    # upstream: memohai/web:latest
+    image: docker.1ms.run/memohai/web:0.21.0
+    environment:
+      - MEMOH_SERVER_UPSTREAM=memoh-server:8080
+      - MEMOH_CHANNEL_UPSTREAM=memoh-channel:8081
+    depends_on:
+      - server
+      - channel

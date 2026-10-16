@@ -1,0 +1,13 @@
+params:
+  - id: admin_password
+    type: string
+    name: "Admin Password"
+    description: "Web UI admin password (empty = random stable password, see setup log)"
+    default_value: ""
+    optional: true
+
+locales:
+  zh:
+    admin_password:
+      name: "管理员密码"
+      description: "Web UI 管理员密码（留空则自动生成稳定密码，可在数据卷 config.toml 查看）"
