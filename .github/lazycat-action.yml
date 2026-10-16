@@ -24,7 +24,17 @@ images:
     source: memohai/server
     channel: stable
     sort: semver
-    tag_regex: '^\d+\.\d+\.\d+$'
+    tag_regex: '^\d+\.\d+\.\d+
+
+stores:
+  official:
+    enabled: false
+  private:
+    enabled: true
+    skip_if_version_exists: true
+    name: Memoh
+    summary: "开源多 Agent 平台：独立沙箱、长期记忆"
+
     delivery:
       mode: mirror
       require_digest_match: true
@@ -34,27 +44,17 @@ images:
     source: memohai/web
     channel: stable
     sort: semver
-    tag_regex: '^\d+\.\d+\.\d+$'
-    delivery:
-      mode: mirror
-      require_digest_match: true
-  - id: postgres
-    target: service
-    service: postgres
-    source: library/postgres
-    channel: stable
-    sort: semver
-    tag_regex: '^18[.\-].*alpine$|^18-alpine$'
-    delivery:
-      mode: mirror
-      require_digest_match: true
-  - id: pgvector
-    target: service
-    service: pgvector
-    source: pgvector/pgvector
-    channel: stable
-    sort: semver
-    tag_regex: '^pg\d+$'
+    tag_regex: '^\d+\.\d+\.\d+
+
+stores:
+  official:
+    enabled: false
+  private:
+    enabled: true
+    skip_if_version_exists: true
+    name: Memoh
+    summary: "开源多 Agent 平台：独立沙箱、长期记忆"
+
     delivery:
       mode: mirror
       require_digest_match: true
