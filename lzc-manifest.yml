@@ -64,8 +64,8 @@ services:
       fi
       cp /lzcapp/var/memoh/config/config.toml /app/config.toml
   server:
-    # upstream: memohai/server:0.21.0
-    image: docker.1ms.run/memohai/server:0.21.0
+    # upstream: memohai/server:0.22.0
+    image: docker.1ms.run/memohai/server:0.22.0
     privileged: true
     environment:
       - TZ=Asia/Shanghai
@@ -124,8 +124,8 @@ services:
       retries: 3
       start_period: 10s
   web:
-    # upstream: memohai/web:0.21.0
-    image: docker.1ms.run/memohai/web:0.21.0
+    # upstream: memohai/web:0.22.0
+    image: docker.1ms.run/memohai/web:0.22.0
     environment:
       - MEMOH_SERVER_UPSTREAM=memoh-server:8080
       - MEMOH_CHANNEL_UPSTREAM=memoh-channel:8081

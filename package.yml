@@ -1,5 +1,5 @@
 package: community.lazycat.app.memoh
-version: 0.21.0
+version: 0.22.0
 name: Memoh
 description: "The open-source multi-agent platform: every agent gets its own computer, desktop, network and long-term memory"
 min_os_version: 1.5.0
